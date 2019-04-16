@@ -53,7 +53,7 @@ function InputForm({ value, analyzeInput, clearInput, report }) {
                         variant="h4"
                         style={inputFormStyles.reportHeaderStyles}
                     >
-                        Seniment Score: 0
+                        Sentiment Score: 0
                     </Typography>
                 </div>
             );
