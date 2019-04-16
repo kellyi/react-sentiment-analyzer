@@ -18,7 +18,7 @@ export default function Header() {
             <Toolbar>
                 <IconButton color="inherit" aria-label="Menu">
                     <a
-                        href="http://example.com"
+                        href="https://github.com/kellyi/react-sentiment-analyzer"
                         style={headerStyles.linkStyles}
                     >
                         <CodeIcon />
