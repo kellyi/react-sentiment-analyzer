@@ -1,5 +1,5 @@
-import sentiment from 'wink-sentiment';
+import Sentiment from 'sentiment';
 
-const sentimentAnalyzer = text => sentiment(text);
+const sentiment = new Sentiment();
 
-export default sentimentAnalyzer;
+export default sentiment.analyze;
