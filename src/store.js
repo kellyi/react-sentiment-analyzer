@@ -8,7 +8,6 @@ import rootReducer from './reducers';
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 const devtoolsExtensionCompose =
-    isDevelopment &&
     isObject(window) &&
     window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__;
 
