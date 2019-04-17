@@ -3,11 +3,17 @@ import { connect } from 'react-redux';
 import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography';
 import TextField from '@material-ui/core/TextField';
+import Button from '@material-ui/core/Button';
+import CircularProgress from '@material-ui/core/CircularProgress';
 import flow from 'lodash/flow';
 
-import { analyzeSentiment } from '../actions/analyze';
+import { analyzeSentiment, analyzeToxicity } from '../actions/analyze';
 
-import { getValueFromEvent, parseReport } from '../utils/utils';
+import {
+    getValueFromEvent,
+    parseSentiment,
+    parseToxicity,
+} from '../utils/utils';
 
 const inputFormStyles = Object.freeze({
     containerStyles: Object.freeze({
@@ -19,16 +25,22 @@ const inputFormStyles = Object.freeze({
         justifyContent: 'center',
         flexDirection: 'column',
         alignItems: 'center',
-        height: '30%',
+        height: '40%',
     }),
     reportHeaderStyles: Object.freeze({
         padding: '0.75rem',
     }),
     formStyles: Object.freeze({
         display: 'flex',
+        flexDirection: 'column',
         width: '100%',
-        height: 'calc(100% - 30% - 56px)',
+        height: 'calc(100% - 40% - 56px)',
         justifyContent: 'center',
+        alignItems: 'center',
+    }),
+    buttonStyles: Object.freeze({
+        margin: '1rem',
+        height: '50px',
     }),
     textFieldStyles: Object.freeze({
         width: '17rem',
@@ -36,9 +48,24 @@ const inputFormStyles = Object.freeze({
     }),
 });
 
-function InputForm({ value, analyzeInput, clearInput, report }) {
+function InputForm({
+    value,
+    analyzeInputSentiment,
+    clearInput,
+    sentiment,
+    toxicity,
+    fetching,
+    error,
+    analyzeInputToxicity,
+}) {
     const reportSection = (() => {
-        if (!report || !report.score) {
+        const toxicityScore = (
+            <Typography variant="h5" style={inputFormStyles.reportHeaderStyles}>
+                Toxicity Prediction: {toxicity ? toxicity.probability : '?'}
+            </Typography>
+        );
+
+        if (!sentiment || !sentiment.score) {
             return (
                 <div style={inputFormStyles.reportSectionStyles}>
                     <Typography
@@ -50,16 +77,17 @@ function InputForm({ value, analyzeInput, clearInput, report }) {
                         </span>
                     </Typography>
                     <Typography
-                        variant="h4"
+                        variant="h5"
                         style={inputFormStyles.reportHeaderStyles}
                     >
                         Sentiment Score: 0
                     </Typography>
+                    {toxicityScore}
                 </div>
             );
         }
 
-        const emoji = report.score > 0 ? '😀' : '😠';
+        const emoji = sentiment.score > 0 ? '😀' : '😠';
 
         return (
             <div style={inputFormStyles.reportSectionStyles}>
@@ -70,21 +98,36 @@ function InputForm({ value, analyzeInput, clearInput, report }) {
                     <span
                         role="img"
                         aria-label={
-                            report.score > 0 ? 'grinning face' : 'angry face'
+                            sentiment.score > 0 ? 'grinning face' : 'angry face'
                         }
                     >
                         {emoji}
                     </span>
                 </Typography>
                 <Typography
-                    variant="h4"
+                    variant="h5"
                     style={inputFormStyles.reportHeaderStyles}
                 >
-                    Sentiment Score: {report.score}
+                    Sentiment Score: {sentiment.score}
                 </Typography>
+                {toxicityScore}
             </div>
         );
     })();
+
+    const buttonElement = fetching ? (
+        <CircularProgress style={inputFormStyles.buttonStyles} />
+    ) : (
+        <Button
+            variant="contained"
+            color="primary"
+            disabled={fetching}
+            onClick={analyzeInputToxicity}
+            style={inputFormStyles.buttonStyles}
+        >
+            Analyze Toxicity
+        </Button>
+    );
 
     return (
         <Paper style={inputFormStyles.containerStyles}>
@@ -93,32 +136,48 @@ function InputForm({ value, analyzeInput, clearInput, report }) {
                 noValidate
                 autoComplete="off"
                 style={inputFormStyles.formStyles}
+                onSubmit={analyzeInputToxicity}
             >
+                {buttonElement}
                 <TextField
                     style={inputFormStyles.textFieldStyles}
                     label="Text to analyze"
                     value={value}
-                    onChange={analyzeInput}
+                    onChange={analyzeInputSentiment}
                     margin="normal"
                     multiline
+                    disabled={fetching}
                 />
             </form>
         </Paper>
     );
 }
 
-function mapStateToProps({ analyze: { input, report } }) {
+function mapStateToProps({
+    analyze: {
+        input,
+        sentiment,
+        toxicity: { data, fetching, error },
+    },
+}) {
     return {
         input,
-        report: report ? parseReport(report) : null,
+        sentiment: sentiment ? parseSentiment(sentiment) : null,
+        toxicity: data ? parseToxicity(data) : null,
+        fetching,
+        error,
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return {
-        analyzeInput: flow(
+        analyzeInputSentiment: flow(
             getValueFromEvent,
             analyzeSentiment,
+            dispatch,
+        ),
+        analyzeInputToxicity: flow(
+            analyzeToxicity,
             dispatch,
         ),
     };
