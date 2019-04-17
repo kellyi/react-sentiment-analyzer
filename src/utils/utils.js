@@ -1,7 +1,7 @@
 export const getValueFromEvent = ({ target: { value } }) => value;
 
-export const parseReport = ({ score, comparative }) =>
+export const parseReport = ({ score, normalizedScore }) =>
     Object.freeze({
         score,
-        comparative,
+        normalizedScore,
     });
